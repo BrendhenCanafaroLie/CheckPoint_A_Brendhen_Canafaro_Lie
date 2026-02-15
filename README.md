@@ -1,12 +1,12 @@
 # CheckPoint 1 (A_Brendhen_Canafaro_Lie_033)
-CheckPoint 1: Data Gathering &amp; Business Understanding
+CheckPoint 1: Data Gathering & Business Understanding
 
 # Import Library
 import pandas as pd
 
 # Memuat Dataset
-file = "https://raw.githubusercontent.com/BrendhenCanafaroLie/CheckPoint_1_A_Brendhen_Canafaro_Lie/refs/heads/main/Finance%20E-Commerce%20Dirty%20Kaggle%20Dataset.csv"
-df = pd.read._csv(file)
+file = "/content/drive/MyDrive/Tugas-Tugas Praktikum/Tugas AVD/CheckPoint 1: Data Gathering & Business Understanding/Finance_Ecommerce_Dirty_Dataset_csv.csv"
+df = pd.read_csv(file)
 df.head()
 
 # Business Understanding
