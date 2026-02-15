@@ -6,7 +6,9 @@ import pandas as pd
 
 # Memuat Dataset
 file = "/content/drive/MyDrive/Tugas-Tugas Praktikum/Tugas AVD/CheckPoint 1: Data Gathering & Business Understanding/Finance_Ecommerce_Dirty_Dataset_csv.csv"
+
 df = pd.read_csv(file)
+
 df.head()
 
 # Business Understanding
