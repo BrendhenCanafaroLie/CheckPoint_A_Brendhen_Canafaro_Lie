@@ -67,7 +67,7 @@ Dataset juga memuat **data merchant dan data pelanggan, **sehingga analisis pola
 
 Dataset ini memiliki data-data yang cukup besar yaitu, **6060 baris dan 23 kolom.**
 
-:
+'''
 
 file = "/content/drive/MyDrive/Tugas-Tugas Praktikum/Tugas AVD/CheckPoint 1: Data Gathering & Business Understanding/Finance_Ecommerce_Dirty_Dataset_csv.csv"
 
