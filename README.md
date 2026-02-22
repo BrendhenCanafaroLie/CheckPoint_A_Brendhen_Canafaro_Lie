@@ -53,3 +53,23 @@ Dataset Finance_Ecommerce_Dirty_Dataset dari Kaggle.
 3. Visualisasi data 
 4. Menyusun rapi hasil data
 4. Membuat ringkasan dan kesimpulan
+
+# Data Understanding
+
+**Data Understanding** adalah sebuah tahap kedua setelah business understanding. Setelah terbuatnya konsep dasar dari tujuan penggunaan data dan apa hasil yang ingin dicapai, data perlu di **pahami, analisa, diperbaiki, dan dibersihkan** sehingga menjadi data yang dapat digunakan sebagai visualisasi, sesuai keperluan pengguna.
+
+## Memuat Dataset
+
+Dataset yang digunakan adalah file csv yang berjudul **"Finance Ecommerce Dirty Dataset"**, dataset ini berisikan Dataset ini berisi data transaksi keuangan dari sebuah platform e-commerce.
+
+Dataset ini mencatat **detail transaksi, perilaku belanja pelanggan, tren transaksi, dan indikasi penipuan.** Informasi utama meliputi **transaksi, nilai uang, saldo, mata uang, serta jenis transaksi.**
+Dataset juga memuat **data merchant dan data pelanggan, **sehingga analisis pola belanja dan lokasi dapat dilakukan.
+
+Dataset ini memiliki data-data yang cukup besar yaitu, **6060 baris dan 23 kolom.**
+
+:
+
+file = "/content/drive/MyDrive/Tugas-Tugas Praktikum/Tugas AVD/CheckPoint 1: Data Gathering & Business Understanding/Finance_Ecommerce_Dirty_Dataset_csv.csv"
+
+df = pd.read_csv(file)
+df
