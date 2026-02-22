@@ -536,6 +536,5 @@ plt.show()
 
 ```python
 df.to_csv('Finance_Ecommerce_Dirty_Dataset.csv', index=False)
-```
-```
+
 
