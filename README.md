@@ -1,4 +1,4 @@
-```markdown
+
 # CheckPoint 1 — Data Gathering & Business Understanding
 **Brendhen Canafaro | A_Brendhen_Canafaro_Lie_033**
 
