@@ -538,3 +538,382 @@ plt.show()
 df.to_csv('Finance_Ecommerce_Dirty_Dataset.csv', index=False)
 
 
+---
+
+```
+# CheckPoint 3 — Data Preparation
+**Brendhen Canafaro | A_Brendhen_Canafaro_Lie_033**
+
+---
+
+## 📁 Import Library
+
+```python
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.express as px
+import numpy as np
+from sklearn.impute import KNNImputer
+```
+
+---
+
+## 📂 Memuat Dataset
+
+```python
+file = "/content/drive/MyDrive/Tugas-Tugas Praktikum/Tugas AVD/CheckPoint 2:  Data Understanding/Finance_Ecommerce_Dirty_Dataset_csv.csv"
+
+df = pd.read_csv(file)
+df
+```
+
+---
+
+## 🧹 Data Preparation
+
+**Data Preparation** adalah tahap pembersihan dan transformasi data agar siap digunakan untuk analisis. Tahap ini mencakup perbaikan tipe data, penanganan nilai tidak konsisten, penanganan missing values, duplikasi, outliers, konstruksi fitur baru, dan reduksi data.
+
+---
+
+## 🔧 Perbaikan Tipe Data
+
+Beberapa kolom memiliki tipe data yang tidak sesuai dengan isinya. Berikut kolom-kolom yang diperbaiki:
+
+| No | Kolom | Tipe Data Saat Ini | Seharusnya | Alasan |
+|----|-------|-------------------|------------|--------|
+| 1 | Date | object | datetime64[ns] | Isi kolom adalah tanggal |
+| 2 | Amount | object | Float64 | Bisa berupa angka desimal |
+| 3 | Balance | object | Float64 | Bisa berupa angka desimal |
+| 4 | IsFraud | object | bool | Isi kolom adalah Yes/No seperti True/False |
+| 5 | CustomerSince | object | datetime64[ns] | Isi kolom adalah tanggal |
+
+**1. Kolom Date**
+
+```python
+df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+```
+
+**2. Kolom Amount**
+
+Tahap ke-1, ubah ke numerik terlebih dahulu:
+
+```python
+df['Amount'] = pd.to_numeric(df['Amount'], errors='coerce')
+```
+
+Tahap ke-2, ubah ke tipe data Float64:
+
+```python
+df['Amount'] = df['Amount'].astype('Float64')
+```
+
+**3. Kolom Balance**
+
+Tahap ke-1, ubah ke numerik terlebih dahulu:
+
+```python
+df['Balance'] = pd.to_numeric(df['Balance'], errors='coerce')
+```
+
+Tahap ke-2, ubah ke tipe data Float64:
+
+```python
+df['Balance'] = df['Balance'].astype('Float64')
+```
+
+**4. Kolom IsFraud**
+
+```python
+df['IsFraud'] = df['IsFraud'].astype(bool)
+```
+
+**5. Kolom CustomerSince**
+
+```python
+df['CustomerSince'] = pd.to_datetime(df['CustomerSince'], errors='coerce')
+```
+
+---
+
+## ⚠️ Inconsistent Values
+
+Pada tahap ini kita menangani ketidakkonsistenan data pada kolom-kolom berikut: AccountName, TransactionType, Currency, Notes, dan CustomerSince.
+
+**1. Kolom AccountName**
+
+Terdapat perbedaan penulisan huruf besar kecil dan salah ketik. Diseragamkan menjadi huruf kapital semua.
+
+```python
+df['AccountName'] = df['AccountName'].str.upper()
+print(df['AccountName'].unique())
+```
+
+**2. Kolom TransactionType**
+
+Terdapat perbedaan format huruf besar dan kecil. Diseragamkan ke format Title Case.
+
+```python
+df['TransactionType'] = df['TransactionType'].str.strip().str.title()
+print(df['TransactionType'].unique())
+```
+
+**3. Kolom Currency**
+
+Terdapat perbedaan format huruf besar dan kecil. Diseragamkan ke huruf kapital semua.
+
+```python
+df['Currency'] = df['Currency'].str.strip().str.upper()
+print(df['Currency'].unique())
+```
+
+**4. Kolom IsFraud**
+
+Terdapat perbedaan penulisan YES/NO. Dipetakan ke nilai yang seragam.
+
+```python
+df['IsFraud'] = df['IsFraud'].replace({
+    'YES': 'True',
+    'NO': 'False'
+})
+
+for col in ['IsFraud']:
+    print(df[col].unique())
+```
+
+**5. Kolom Notes**
+
+Terdapat perbedaan format penulisan dan teks tambahan `-- VERIFY\nCONTACT SUPPORT`. Dibersihkan dan diseragamkan ke huruf kapital.
+
+```python
+df['Notes'] = df['Notes'].str.upper()
+df['Notes'] = df['Notes'].str.replace(r'\s*--  VERIFY.*', '', regex=True)
+
+for col in ['Notes']:
+    print(df[col].unique())
+```
+
+**6. Kolom CustomerSince**
+
+Terdapat berbagai format tanggal yang tidak seragam (misal: `16/09/2018`, `Aug-21`, `2024`). Karena setiap data dipastikan memiliki tahun, maka hanya tahunnya saja yang diambil.
+
+```python
+import re
+
+def extract_year(val):
+    if pd.isna(val):
+        return np.nan
+    val = str(val).strip()
+
+    match = re.match(r'^[A-Za-z]{3}-(\d{2})$', val)
+    if match:
+        yr = int(match.group(1))
+        return 2000 + yr
+
+    match = re.match(r'^(20\d{2})$', val)
+    if match:
+        return int(match.group(1))
+
+    match = re.search(r'(20\d{2})', val)
+    if match:
+        return int(match.group(1))
+
+    return np.nan
+
+df["CustomerSince"] = df["CustomerSince"].apply(extract_year)
+```
+
+**7. Kolom Amount**
+
+Terdapat nilai negatif yang merupakan kesalahan input. Semua nilai diubah menjadi positif.
+
+```python
+df['Amount'] = df['Amount'].abs()
+```
+
+---
+
+## 🕳️ Missing Values
+
+Pada tahap ini kita menangani data yang hilang. Kolom non-numerik dengan missing value tinggi akan diabaikan atau dihapus, sedangkan kolom numerik ditangani dengan imputasi.
+
+```python
+print((df.isna().sum() / len(df)) * 100)
+```
+
+| Kolom | Missing Value (%) |
+|-------|------------------|
+| CustomerSince | 66.40% |
+| MerchantEmail | 30.33% |
+| MerchantPhone | 23.32% |
+| Balance | 20.38% |
+| Amount | 20.18% |
+| Notes | 13.27% |
+| CardNumber | 7.24% |
+| Phone | 5.41% |
+| PostalCode | 5.25% |
+| Email | 4.27% |
+
+**1. Amount (20.1%)**
+
+Diimputasi menggunakan **median** karena distribusi data bersifat *right-skewed* dengan outlier yang signifikan, sehingga mean tidak dapat mewakili data dengan baik.
+
+```python
+plt.figure(figsize=(10, 6))
+sns.histplot(df['Amount'], bins=20, kde=True)
+plt.title('Total Transaksi')
+plt.xlabel('Transaksi')
+plt.ylabel('Jumlah Transaksi')
+plt.show()
+```
+
+```python
+df['Amount'] = df['Amount'].fillna(df['Amount'].median())
+```
+
+**2. Balance (20.4%)**
+
+Diimputasi menggunakan **KNN Imputer** karena saldo memiliki hubungan dengan kolom numerik lainnya.
+
+```python
+imputer = KNNImputer(n_neighbors=5)
+df[['Balance']] = imputer.fit_transform(df[['Balance']])
+```
+
+---
+
+## 🔁 Duplicated Values
+
+Menangani baris yang mengalami duplikasi dengan menghapusnya.
+
+```python
+df = df.drop_duplicates()
+```
+
+---
+
+## 📈 Outliers Values
+
+Deteksi outlier menggunakan metode **IQR (Interquartile Range)** pada kolom numerik.
+
+```python
+results = []
+
+cols = df.select_dtypes(include=['float64', 'int64'])
+
+for col in cols:
+    q1 = df[col].quantile(0.25)
+    q3 = df[col].quantile(0.75)
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5*iqr
+    upper_bound = q3 + 1.5*iqr
+    outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
+    percent_outliers = (len(outliers)/len(df))*100
+    results.append({'Kolom': col, 'Persentase Outliers': percent_outliers})
+
+results_df = pd.DataFrame(results)
+results_df.set_index('Kolom', inplace=True)
+results_df = results_df.rename_axis(None, axis=0).rename_axis('Kolom', axis=1)
+
+display(results_df)
+```
+
+| Kolom | Persentase Outlier |
+|-------|-------------------|
+| Amount | 11.44% |
+| MerchantPhone | 2.13% |
+| Phone | 2.51% |
+| ExchangeRate | 0.00% |
+| Balance | 0.00% |
+| PostalCode | 0.00% |
+| CustomerSince | 0.00% |
+
+---
+
+## 🏗️ Construct Data
+
+Tahap Construct Data adalah proses membuat kolom baru dari data yang sudah ada untuk memperkaya analisis.
+
+**1. Membuat Kolom Baru `Amount_IDR`**
+
+Dataset memiliki transaksi dari berbagai mata uang (USD, GBP, AED, INR). Kolom ExchangeRate berfungsi sebagai kurs konversi ke INR, lalu dikonversi ke IDR dengan kurs statis 1 INR ≈ Rp190.
+
+- Langkah 1: `Amount × ExchangeRate` → menyamakan ke INR
+- Langkah 2: `Amount_INR × 190` → konversi ke IDR
+
+```python
+INR_TO_IDR = 190
+df['Amount_INR'] = df['Amount'] * df['ExchangeRate']
+df['Amount_IDR'] = df['Amount_INR'] * INR_TO_IDR
+
+df = df.drop('Amount_INR', axis=1)
+```
+
+**2. Membuat Kolom Baru `BalanceCategory`**
+
+Mengubah nilai numerik Balance menjadi label kategorik agar lebih mudah dianalisis.
+
+- `Positive` → Balance > 0
+- `Zero` → Balance = 0
+- `Negative` → Balance < 0
+- `Unknown` → Balance = NaN
+
+```python
+def balance_category(bal):
+    if pd.isna(bal):
+        return 'Unknown'
+    elif bal > 0:
+        return 'Positive'
+    elif bal == 0:
+        return 'Zero'
+    else:
+        return 'Negative'
+
+df['BalanceCategory'] = df['Balance'].apply(balance_category)
+```
+
+Mengecek kolom baru yang sudah tersedia:
+
+```python
+print(df.columns)
+```
+
+---
+
+## ✂️ Data Reduction
+
+Tahap Data Reduction bertujuan menyederhanakan dataset tanpa menghilangkan informasi penting. Terdapat 9 kolom yang dihapus:
+
+| Kolom | Alasan Penghapusan |
+|-------|-------------------|
+| `TransactionID` | Tidak merepresentasikan pola atau perilaku transaksi |
+| `AccountID` | Tidak digunakan untuk join antar tabel |
+| `AccountName` | Identitas pribadi, tidak relevan untuk analisis pola |
+| `MerchantPhone` | Tidak memiliki hubungan logis dengan pola transaksi |
+| `MerchantEmail` | Hanya mengidentifikasi entitas, bukan perilaku |
+| `PostalCode` | Sudah diwakili oleh kolom Country dan City |
+| `CardNumber` | Tidak mengandung pola analitik yang berguna |
+| `Email` | Hanya pengidentifikasi, tidak bisa digunakan untuk analisis |
+| `Phone` | Tidak relevan untuk analisis e-commerce dan keuangan |
+
+```python
+df = df.drop('TransactionID', axis=1)
+df = df.drop('AccountID', axis=1)
+df = df.drop('AccountName', axis=1)
+df = df.drop('MerchantPhone', axis=1)
+df = df.drop('MerchantEmail', axis=1)
+df = df.drop('PostalCode', axis=1)
+df = df.drop('CardNumber', axis=1)
+df = df.drop('Email', axis=1)
+df = df.drop('Phone', axis=1)
+```
+
+---
+
+## 💾 Menyimpan Dataset Bersih
+
+```python
+df.to_csv('Finance_Ecommerce_Dirty_Dataset.csv', index=False)
+```
+```
+
